@@ -14,10 +14,10 @@ steps:
   inputs:
     SourceFolder: 'Presentation'
     Contents: '**'
-    TargetFolder: '$(build.sourcesDirectory)'
+    TargetFolder: '$(Build.ArtifactStagingDirectory)'
     OverWrite: true
 - task: ArchiveFiles@2
   inputs:
-    rootFolderOrFile: '$(build.sourcesDirectory)'
+    rootFolderOrFile: '$(Build.ArtifactStagingDirectory)'
     includeRootFolder: false
 - task: PublishBuildArtifacts@1
