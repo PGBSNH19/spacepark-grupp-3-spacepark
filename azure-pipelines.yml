@@ -51,4 +51,4 @@ stages:
         containerRegistry: 'apiConnection'
         repository: 'spaceport-repo'
         command: 'buildAndPush'
-        Dockerfile: Presentation/Dockerfile
+        Dockerfile: SpacePort/Dockerfile
