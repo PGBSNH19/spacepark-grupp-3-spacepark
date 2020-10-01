@@ -9,9 +9,9 @@ variables:
   buildConfiguration: 'Release'
 
 stages:
-- stage: Build
+- stage: Test
   jobs:
-  - job: Build
+  - job: Test
     steps:
     - task: DotNetCoreCLI@2
       inputs:
@@ -25,7 +25,12 @@ stages:
         repository: 'spaceport-backend'
         command: 'buildAndPush'
         Dockerfile: 'SpacePort/Dockerfile'
-
+    - task: DotNetCoreCLI@2
+      inputs:
+        command: 'publish'
+        publishWebProjects: true
+        zipAfterPublish: false
+        workingDirectory: 'SpacePort'
     - task: PublishBuildArtifacts@1
       inputs:
         PathtoPublish: '$(Build.ArtifactStagingDirectory)'
