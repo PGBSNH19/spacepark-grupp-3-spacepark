@@ -25,7 +25,7 @@
     * [Build och Test pipelines](#build-och-test-pipelines)
     * [Presentation build pipeline](#presentation-build-pipeline)
     * [Presentation release pipeline](#presentation-release-pipeline)
-- Resultat
+- [Resultat](#resultat)
 
 # Lista över förkortningar och begrepp
 - **CI:** Continuous Integration
