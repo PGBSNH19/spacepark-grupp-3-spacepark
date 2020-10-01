@@ -3,52 +3,33 @@ trigger:
 - master
 
 pool:
-  vmImage: 'windows-latest'
+  vmImage: 'ubuntu-latest'
 
-variables:
-  solution: '**/*.sln'
-  buildPlatform: 'Any CPU'
-  buildConfiguration: 'Release'
-  tag: '$(Build.BuildId)'
+steps:
 
-stages:
-- stage: Build
-  jobs:
-  - job: Build
-    steps:
-    - task: NuGetToolInstaller@1
-    - task: NuGetCommand@2
-      inputs:
-        restoreSolution: '$(solution)'
-    - task: VSBuild@1
-      inputs:
-        solution: '$(solution)'
-        msbuildArgs: '/p:DeployOnBuild=true /p:WebPublishMethod=Package /p:PackageAsSingleFile=true /p:SkipInvalidConfigurations=true /p:DesktopBuildPackageLocation="$(build.artifactStagingDirectory)\WebApp.zip" /p:DeployIisAppPath="spaceport web site"'
-        platform: '$(buildPlatform)'
-        configuration: '$(buildConfiguration)'
+- task: DotNetCoreCLI@2
+  inputs:
+    command: 'build'
+    projects: 'SpacePort/*.csproj'
 
-- stage: Test
-  dependsOn: Build
-  condition: succeeded()
-  jobs:
-  - job: Test
-    steps:
-    - task: VSTest@2
-      inputs:
-        platform: '$(buildPlatform)'
-        configuration: '$(buildConfiguration)'
 
-- stage: Push
-  dependsOn: Test
-  condition: succeeded()
-  pool:
-   -vmImage: 'ubuntu-latest'
-  jobs:
-  - job: Push
-    steps:
-    - task: Docker@2
-      inputs:
-        containerRegistry: 'apiConnection'
-        repository: 'spaceport-repo'
-        command: 'buildAndPush'
-        Dockerfile: SpacePort/Dockerfile
+- task: DotNetCoreCLI@2
+  inputs:
+    command: 'publish'
+    publishWebProjects: true
+    zipAfterPublish: false
+    workingDirectory: 'SpacePort'
+    
+
+- task: Docker@2
+  inputs:
+    containerRegistry: 'apiConnection'
+    repository: 'spaceport-backend'
+    command: 'buildAndPush'
+    Dockerfile: 'SpacePort/Dockerfile'
+
+- task: PublishBuildArtifacts@1
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+    ArtifactName: 'spaceportArtifact'
+    publishLocation: 'Container'
