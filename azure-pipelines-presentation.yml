@@ -7,7 +7,7 @@ pool:
 steps:
 - task: Docker@2
   inputs:
-    containerRegistry: 'sp3connection'
-    repository: 'sp3presentation'
+    containerRegistry: 'apiconnection'
+    repository: 'spaceport-presentation'
     command: 'buildAndPush'
     Dockerfile: Presentation/Dockerfile
