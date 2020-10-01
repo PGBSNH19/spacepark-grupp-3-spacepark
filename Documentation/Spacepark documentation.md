@@ -62,7 +62,7 @@ Då denna applikationen endast ska användas i test syfte så finns det en del b
 
 **Container Registry**: Basic|2 enheter i 30 dagar|5GB bandbredd **87 kr**
 
-**Container Instance**: 1 containergrupp i 7 dag|2 GB minne|2 vCPU **73 kr**
+**Container Instance**: 1 containergrupp i 7 dagar|2 GB minne|2 vCPU **73 kr**
 
 **Totalbelopp: 160 kr i månaden**
 
@@ -72,11 +72,11 @@ Om applikationen skulle gå att användas publikt så skulle kostnaden bli väld
 
 **Container Registry**: Basic|2 enhet i 30 dagar|5GB bandbredd **87 kr**
 
-**App service**: Basic|Windows|1 enhet i 30 dagar|1 core|1.75 GB RAM|10 GB minne **478 kr**
+**App service**: Basic|Linux|1 enhet i 30 dagar|1 core|1.75 GB RAM|10 GB minne **113 kr**
 
 **Databas i MySQL**: General Purpose|2 vCore|Pay as you go|100GB storage **1435 kr**
 
-**Totalbelopp: 2000 kr i månaden**
+**Totalbelopp: 1635 kr i månaden**
 
 # Metod
 
