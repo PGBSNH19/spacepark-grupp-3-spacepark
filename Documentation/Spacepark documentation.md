@@ -165,8 +165,56 @@ Vi  separerar våra build pipelines i 2 st filer. Detta för att lättare hålla
 - **azure-pipelines-api.yml**
 - **azure-pipelines-presentation.yml**
 
+### API build pipeline
+
+Vår API build pipeline gör flera saker.  Först och främst den gör en build av vår projekt för att se till att projektet kan utföra en build.  Om det inte går att göra en build av projektet då finns det ingen mening att gå vidare.  Sedan utför vi våra tester för att kolla om allting går igenom tester och därefter publicerar vi det.
+
+Det sista vi gör är att builda en container och sedan pusha det till azure container registry. 
+
+```yaml
+
+trigger:
+- master
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  buildConfiguration: 'Release'
+
+steps:
+- task: DotNetCoreCLI@2
+  inputs:
+    command: 'build'
+    projects: 'SpacePort/*.csproj'
+
+- task: DotNetCoreCLI@2
+  inputs:
+    command: 'test'
+    projects: 'SpacePort.Tests/*.csproj'
+    arguments: '--configuration $(buildConfiguration)'
+
+- task: DotNetCoreCLI@2
+  inputs:
+    command: 'publish'
+    publishWebProjects: true
+    zipAfterPublish: false
+    workingDirectory: 'SpacePort'
+    
+
+- task: Docker@2
+  inputs:
+    containerRegistry: 'apiConnection'
+    repository: 'spaceport-backend'
+    command: 'buildAndPush'
+    Dockerfile: 'SpacePort/Dockerfile'
+
+```
+
+
+
 ### Presentation build pipeline
-Vi har en enkel pipeline för frontend som gör sitt jobb med få rader kod. Vi bestämmer att den ska köras i gång varje gång en ändring kommer till master branchen.  Vi väljer en image med hjälp av pool från microsoft-hosted agent för att köra vår job på VM/Container.  Därefter bestämmer vi att den ska göra en build och sedan pusha vår container till **container registry** på azure.  När vår container är färdig med sin uppgift då körs vår **Presentation Release pipeline** igång som vi kan se längre ner.
+Vi har en enkel pipeline för frontend som gör sitt jobb med få rader kod. Vi bestämmer att den ska köras i gång varje gång en ändring kommer till master branchen.  Vi väljer en image med hjälp av pool från microsoft-hosted agent för att köra vår job på VM/Container.  Därefter bestämmer vi att den ska göra en build och sedan pusha vår container till **container registry** på azure.  När vår container är färdig med sin uppgift då körs vår **Presentation Release pipeline** igång.
 
 ```yaml
 trigger:
@@ -183,7 +231,11 @@ steps:
 ```
 
 ### Presentation Release Pipeline
-Vår Release pipeline för presentation körs igång varje gång vår *Presentation Build pipeline* körs, detta händer eftersom vi har lagt till en **Artifact** som är baserat på vår senast version av Build Pipeline och har aktiverat **continuous deployment trigger**. Därefter så tar vår release pipeline vår image och deployar det till en container instance. 
+Vår Release pipeline för presentation körs igång varje gång vår *Presentation Build pipeline* körs, detta händer eftersom vi har lagt till en **Artifact** som är baserat på vår senast version av Build Pipeline och har aktiverat **continuous deployment trigger**. Därefter så tar vår release pipeline vår image och deployar det till en service app på azure. 
+
+### API release pipeline
+
+Denna pipeline hoppar igång när vår build pipeline för API är färdig med sitt jobb och pushat en container till azure container registry, detta för att i vår artifact har vi bestämt att den ska ta den senaste tag ID:n på vår container och sedan deploy det till vår app service. 
 
 # Resultat
 Resultatet av projektet blev nästan som förväntat. Vi har mestadels lyckats uppnå våra uppsatta mål av applikationen, fördjupning inom CI/CD, Molntjänster och Azure DevOps. 
