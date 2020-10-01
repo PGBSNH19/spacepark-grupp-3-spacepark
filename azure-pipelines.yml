@@ -5,31 +5,24 @@ trigger:
 pool:
   vmImage: 'ubuntu-latest'
 
-steps:
+variables:
+  buildConfiguration: 'Release'
 
-- task: DotNetCoreCLI@2
-  inputs:
-    command: 'build'
-    projects: 'SpacePort/*.csproj'
+stages:
+- stage: Build
+  jobs:
+  - job: Build
+    steps:
+    - task: DotNetCoreCLI@2
+      inputs:
+        command: 'test'
+        projects: 'SpacePort.Tests/*.csproj'
+        arguments: '--configuration $(buildConfiguration)'
 
+    - task: Docker@2
+      inputs:
+        containerRegistry: 'apiConnection'
+        repository: 'spaceport-backend'
+        command: 'buildAndPush'
+        Dockerfile: 'SpacePort/Dockerfile'
 
-- task: DotNetCoreCLI@2
-  inputs:
-    command: 'publish'
-    publishWebProjects: true
-    zipAfterPublish: false
-    workingDirectory: 'SpacePort'
-    
-
-- task: Docker@2
-  inputs:
-    containerRegistry: 'apiConnection'
-    repository: 'spaceport-backend'
-    command: 'buildAndPush'
-    Dockerfile: 'SpacePort/Dockerfile'
-
-- task: PublishBuildArtifacts@1
-  inputs:
-    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-    ArtifactName: 'spaceportArtifact'
-    publishLocation: 'Container'
