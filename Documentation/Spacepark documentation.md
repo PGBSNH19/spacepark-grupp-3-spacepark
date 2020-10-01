@@ -7,6 +7,7 @@
 - [Bakgrund](#bakgrund) 
   * [DevOps](#devops)
   * [Molntjänster](#molntjänster)
+  * [CI/CD](#ci-cd)
 - [Beslut om priser och kostnader](#beslut-om-priser-och-kostnader)
 - [Metod](#metod)
   * [Arbetssätt](#arbetssätt)
@@ -17,17 +18,13 @@
     * [Presentationslager](#presentationslager)
     * [Applikationslager](#applikationslager)
     * [Datalager](#datalager)
-  * [CI/CD](#ci/cd)
   * [Code repository](#code-repository)
   * [Azure Portal](#azure-portal)
   * [Azure DevOps](#azure-devops) 
     * [Boards](#boards)
-    * [Build pipeline](#build-pipeline)
-      * [Build pipeline presentation](#build-pipeline-presentation)
-      * [Build pipeline API](#build-pipeline-api)
-    * [Release pipeline](#release-pipeline)
-      * [Release pipeline presentation](#release-pipeline-presentation)
-      * [Release pipeline api](#release-pipeline-api)
+    * [Build och Test pipelines](#build-och-test-pipelines)
+    * [Presentation build pipeline](#presentation-build-pipeline)
+    * [Presentation release pipeline](#presentation-release-pipeline)
 - Resultat
 
 # Lista över förkortningar och begrepp
@@ -54,6 +51,9 @@ Molntjänster vi ämnar att använda i projektet är åtminstone:
 -  **SQL Database**
 -  **Container Registry**
 -  **Container Instance**, alternativt **App Service**
+
+## CI CD
+Continuous- Integration/Development var ett fokus för detta projekt. Dessa arbetsfilosofiska begrepp beskriver kontinuerligt integrerande av kod, byggnad, testning och slutligen publicering av projektet. Vi ämnar att använda främst CI då vi testar och bygger upp Docker Images kontinuerligt. Denna pipeline är länkad till vår GitHub master branch, vilket vill säga att varje commit till master - samt pull request mot master - bygger upp vår applikation.
 
 # Beslut om priser och kostnader
 ## Kostnad för testapplikation
@@ -157,91 +157,76 @@ Varje Model har en tillhörande Controller och ett tillhörande Repository. Inte
 ### Datalager
 Vi använder en Azure SQL relationsdatabas. Vi valde sedan att bygga upp och populera denna med EntityFrameworkCore och Code first metoden. Vi var alla som mest bekanta med relationsdatabaser och detta var ett väldigt billigt alternativ.
 
-<img src="datalayer.png">
-
-## CI/CD
-Continuous- Integration/Development var ett fokus för detta projekt. Dessa arbetsfilosofiska begrepp beskriver kontinuerligt integrerande av kod, byggnad, testning och slutligen publicering av projektet. I vårt projekt använder vi främst CI då vi testar och bygger upp Docker Images kontinuerligt. Denna pipeline är länkad till vår GitHub master branch, vilket vill säga att varje commit till master - samt pull request mot master - bygger upp vår applikation.
-
 ## Code Repository
-För vårat projekt använde vi ett GitHub repository. Detta repository kopplar vi till ett projekt i Azure DevOps där vi tidigt i projektets gång sätter upp våra build pipelines.
+För vårat projekt använder vi ett GitHub repository. Detta repository kopplar vi till ett projekt i Azure DevOps där vi tidigt i projektets gång satte upp våra build och test pipelines.
 
 ## Azure Portal
 Vi valde använder Azure Portal för att skapa **App Service** och **Container Registry** eftersom vi finner alternativet enklare än Azure CLI. Man kan till exempel se vilken specifikation har en container registry har och vad det kostar per månad. Med CLI det är svårare att skapa saker eftersom man måste följa en viss ordning när man matar in kommandon och det är lätt att få fel på grund av felstavning. Om man får fel man är tvungen att skriva om allting från början vilket är besvärligt. 
 
 ## Azure DevOps 
 ### Boards
-Vi valde att använda oss utav Azure DevOps Boards mestadels för att vi skulle ha ett bra sett att organisera oss på och för att ha ett bra sätt att dela upp vårat arbete på. När vi började projektet så diskuterade vi i gruppen om vi skulle använda oss utav Boards eller Jira. Vi valde i slutändan Boards eftersom ingen av oss hade använt sig utav det tidigare och vi tyckte det skulle vara intressant att lära oss ett till sätt att skapa sprints etc. Dessutom så var det en fördel med Boards eftersom vi redan använde oss utav Azure DevOps så det blev lite smidigare att ha så mycket samlat på samma ""verktyg"" som möjligt.
+Vi valde att använda oss utav Azure DevOps Boards mestadels för att vi skulle ha ett bra sett att organisera oss på och för att ha ett bra sätt att dela upp vårat arbete på. När vi började projektet så diskuterade vi i gruppen om vi skulle använda oss utav Boards eller Jira. Vi valde i slutändan Boards eftersom ingen av oss hade använt sig utav det tidigare och vi tyckte det skulle vara intressant att lära oss ett till sätt att skapa sprints etc. Dessutom så var det en fördel med Boards eftersom vi redan använde oss utav Azure DevOps så det blev lite smidigare att ha så mycket samlat på samma plattform som möjligt.
 
-### Build Pipeline
-Vi väljer att separera våra build pipelines i 2 st filer. Detta för att lättare hålla isär projektspecifika skillnader, och dela upp kod:
+###  Build och Test pipelines
+Vi  separerar våra build pipelines i 2 st filer. Detta för att lättare hålla isär projektspecifika skillnader, och dela upp kod:
 - **azure-pipelines-api.yml**
 - **azure-pipelines-presentation.yml**
 
-#### Build pipeline Presentation
+### Presentation build pipeline
+Vi har en enkel pipeline för frontend som gör sitt jobb med få rader kod. Vi bestämmer att den ska köras i gång varje gång en ändring kommer till master branchen.  Vi väljer en image med hjälp av pool från microsoft-hosted agent för att köra vår job på VM/Container.  Därefter bestämmer vi att den ska göra en build och sedan pusha vår container till **container registry** på azure.  När vår container är färdig med sin uppgift då körs vår **Presentation Release pipeline** igång som vi kan se längre ner.
+
 ```yaml
 trigger:
 - master
-
 pool:
   vmImage: 'ubuntu-latest'
-
 steps:
-- task: CopyFiles@2
-  inputs:
-    SourceFolder: 'Presentation'
-    Contents: '**'
-    TargetFolder: '$(Build.ArtifactStagingDirectory)'
-    OverWrite: true
-- task: ArchiveFiles@2
-  inputs:
-    rootFolderOrFile: '$(Build.ArtifactStagingDirectory)'
-    includeRootFolder: false
-- task: PublishBuildArtifacts@1
 - task: Docker@2
   inputs:
-    containerRegistry: '<dolt>'
-    repository: '<dolt>'
+    containerRegistry: 'sp3connection'
+    repository: 'sp3presentation'
     command: 'buildAndPush'
-    Dockerfile: '**/Dockerfile'
+    Dockerfile: Presentation/Dockerfile
 ```
 
-#### Build pipeline API
-I vårat API körs våra unit tester, och ger felutskrift ifall versionen ej går igenom testprocessen. Annars så fortlöper processen, bygger samt publicerar en Docker Container.
-```yaml
-trigger:
-- master
-
-pool:
-  vmImage: 'ubuntu-latest'
-
-variables:
-  buildConfiguration: 'Release'
-
-steps:
-- task: DotNetCoreCLI@2
-  inputs: 
-    command: test
-    project: '/SpacePort.Tests/*.csproj'
-    arguments: '--configuration $(buildConfiguration)'
-- script: dotnet build --configuration $(buildConfiguration)
-  displayName: 'dotnet build $(buildConfiguration)'
-- task: Docker@2
-  inputs:
-    containerRegistry: 'spaceportConnection'
-    repository: 'spaceportConnection'
-    command: 'buildAndPush'
-    Dockerfile: '**/Dockerfile'
-```
-
-### Release Pipeline
-> Fortsätt här
-
-#### Release pipeline Presentation
-> Fortsätt här
-
-#### Release pipeline API
-> Fortsätt här
+### Presentation Release Pipeline
+Vår Release pipeline för presentation körs igång varje gång vår *Presentation Build pipeline* körs, detta händer eftersom vi har lagt till en **Artifact** som är baserat på vår senast version av Build Pipeline och har aktiverat **continuous deployment trigger**. Därefter så tar vår release pipeline vår image och deployar det till en container instance. 
 
 # Resultat
+Resultatet av projektet blev nästan som förväntat. Vi har mestadels lyckats uppnå våra uppsatta mål av applikationen, fördjupning inom CI/CD, Molntjänster och Azure DevOps. 
 
-> Fortsätt här
+Vi satte av med att först bygga upp basen för vårat API samt att sätta upp en relationsdatabas på Azure. Vi förde dagliga standups på morgonen med hög närvaro, och samlades alltid minst en gång innan lunch och innan dagens slut för att återkoppla. Cirka en vecka in i projektet så designade vi ett interface för vår Frontend och använde oss av jQuery Ajax för att kommunicera med API:et. Allt detta gick helt smärtfritt.
+
+Vi låg bra till tidsmässigt fram emot slutet där vi började stöta på problem. **Release Pipelines** för API ville inte fungera för oss och detta stal mycket tid. Dessutom var detta i ett sent skede när vi nästan var färdiga och behövde fokusera på dokumentation och video presentation. 
+
+Vår lösning innehåller: 
+
+- De mest kostnadseffektiva Molnlösningarna vi kunde hitta på Azure Portal
+  - Azure SQL
+  - Azure Container Instance
+  - Azure Container Registry
+- Frontend byggd i statisk html, css och JavaScript (jQuery)
+- .NET Core Backend API
+
+Vi gjorde ett diagram av hur vi tänkte oss att applikationen ska fungera. Detta är mer eller mindre slutresultatet. En skillnad är att en använder inte kan återanvända sitt tidigare Konto utan behöver skapa ett nytt.
+
+<div align="center"><img width="50%" src="gfx/diagram-flowchart.png"></div> 
+
+En Frontend App byggd i HTML, JS, CSS som kommunicerar med vårat REST API för att presentera information. Slutresultatet av vår Frontend ser ni nedan:
+
+<div align="center"><img width="75%" src="gfx/presentation-demo.png"></div> 
+
+Vår lösning på API innehåller följande: 
+
+<div align="center"><img src="gfx/api-solution.png"></div> 
+
+
+
+Som tänkt från början ville vi ha en simpel tabellstruktur och inte allt för många tabeller och modeller till API:et. Vi ville ha en "minimum viable solution" och vår databas återspeglar detta:  
+
+<div align="center"><img src="gfx/datalayer.png"></div> 
+
+Våra Pipelines (Test, Build och Publish) kan enklast demonstreras med ett diagram:
+
+<div align="center"><img src="gfx/diagram-pipelines.png"></div> 
+
