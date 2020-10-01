@@ -7,6 +7,7 @@
 - [Bakgrund](#bakgrund) 
   * [DevOps](#devops)
   * [Molntjänster](#molntjänster)
+  * [CI/CD](#ci-cd)
 - [Beslut om priser och kostnader](#beslut-om-priser-och-kostnader)
 - [Metod](#metod)
   * [Arbetssätt](#arbetssätt)
@@ -17,13 +18,13 @@
     * [Presentationslager](#presentationslager)
     * [Applikationslager](#applikationslager)
     * [Datalager](#datalager)
-  * [CI/CD](#ci/cd)
   * [Code repository](#code-repository)
   * [Azure Portal](#azure-portal)
   * [Azure DevOps](#azure-devops) 
     * [Boards](#boards)
     * [Build och Test pipelines](#build-och-test-pipelines)
-    * [Release pipelines](#release-pipelines)
+    * [Presentation build pipeline](#presentation-build-pipeline)
+    * [Presentation release pipeline](#presentation-release-pipeline)
 - Resultat
 
 # Lista över förkortningar och begrepp
@@ -51,17 +52,33 @@ Molntjänster vi ämnar att använda i projektet är åtminstone:
 -  **Container Registry**
 -  **Container Instance**, alternativt **App Service**
 
+## CI CD
+Continuous- Integration/Development var ett fokus för detta projekt. Dessa arbetsfilosofiska begrepp beskriver kontinuerligt integrerande av kod, byggnad, testning och slutligen publicering av projektet. Vi ämnar att använda främst CI då vi testar och bygger upp Docker Images kontinuerligt. Denna pipeline är länkad till vår GitHub master branch, vilket vill säga att varje commit till master - samt pull request mot master - bygger upp vår applikation.
+
 # Beslut om priser och kostnader
-> Fortsätt här
+## Kostnad för testapplikation
+
+Då denna applikationen endast ska användas i test syfte så finns det en del besparingar vi kan göra. För det första så kan vi använda oss utav Container Instance där vi endast behöver betala för tiden vi har uppe containern. Vi använder oss inte heller utav någon riktig SQL databas utan hårdkodar istället in våra värden. 
+
+**Container Registry**: Basic|2 enheter i 30 dagar|5GB bandbredd **87 kr**
+
+**Container Instance**: 1 containergrupp i 7 dagar|2 GB minne|2 vCPU **73 kr**
+
+**Totalbelopp: 160 kr i månaden**
+
+## Kostnad för eventuell applikation
+
+Om applikationen skulle gå att användas publikt så skulle kostnaden bli väldigt mycket högre, framförallt är det databasen som kostar mycket pengar.
+
+**Container Registry**: Basic|2 enhet i 30 dagar|5GB bandbredd **87 kr**
+
+**App service**: Basic|Linux|1 enhet i 30 dagar|1 core|1.75 GB RAM|10 GB minne **113 kr**
+
+**Databas i MySQL**: General Purpose|2 vCore|Pay as you go|100GB storage **1435 kr**
+
+**Totalbelopp: 1635 kr i månaden**
 
 # Metod
-
-I detta avsnitt förklarar du hur du gick tillväga för att kunna utföra ditt exjobb. Vilka metoder, arbetssätt, verktyg, mätinstrument, maskiner och system har du använt dig av och varför?
-
-Beskriv så systematiskt och tydligt du kan vad du gjort och hur du gjort det. Inkludera all information som behövs för att läsaren ska förstå och få förtroende för det du har gjort, dvs att ditt arbete har gjorts på ett pålitligt sätt. 
-
-Kanske kan det vara en fördel att beskriva ordningen på de olika momenten eller beskriva de olika arbetssätten du valt. Ibland kan det vara en fördel att använda bilder och figurer för att förklara på ett bra sätt. Se tidigare rubrik i detta dokument, Examensarbete och Figur 1, för hur du använder figurer i examensarbetet. 
-
 ## Arbetssätt
 Vi började dagarna med att samlas på Discord och diskutera hur vi låg till. Vi satte sedan gemensamt upp **Issues** för att arbeta med i separata GitHub-branches. Varje branch fick lov att mergas till GitHub master när minst 2 kontrollanter gav godkännande.
 
@@ -133,11 +150,6 @@ Varje Model har en tillhörande Controller och ett tillhörande Repository. Inte
 ### Datalager
 Vi använder en Azure SQL relationsdatabas. Vi valde sedan att bygga upp och populera denna med EntityFrameworkCore och Code first metoden. Vi var alla som mest bekanta med relationsdatabaser och detta var ett väldigt billigt alternativ.
 
-<img src="datalayer.png">
-
-## CI/CD
-Continuous- Integration/Development var ett fokus för detta projekt. Dessa arbetsfilosofiska begrepp beskriver kontinuerligt integrerande av kod, byggnad, testning och slutligen publicering av projektet. I vårt projekt använder vi främst CI då vi testar och bygger upp Docker Images kontinuerligt. Denna pipeline är länkad till vår GitHub master branch, vilket vill säga att varje commit till master - samt pull request mot master - bygger upp vår applikation.
-
 ## Code Repository
 För vårat projekt använder vi ett GitHub repository. Detta repository kopplar vi till ett projekt i Azure DevOps där vi tidigt i projektets gång satte upp våra build och test pipelines.
 
@@ -153,17 +165,14 @@ Vi  separerar våra build pipelines i 2 st filer. Detta för att lättare hålla
 - **azure-pipelines-api.yml**
 - **azure-pipelines-presentation.yml**
 
-## azure-pipeline-presentation
-
-Vi har en enkel pipeline för frontend som gör sitt jobb med få rader kod. Vi bestämmer att den ska köras i gång varje gång en ändring kommer till master branchen.  Vi väljer en image med hjälp av <pool> från microsoft-hosted agent för att köra vår <job> på VM/Container.  Därefter bestämmer vi att den ska göra en build och sedan pusha vår container till <container registry> på azure.  När vår container är färdig med sin uppgift då körs igång vår <Presentation Release pipeline> som vi kan se längre ner.
+### Presentation build pipeline
+Vi har en enkel pipeline för frontend som gör sitt jobb med få rader kod. Vi bestämmer att den ska köras i gång varje gång en ändring kommer till master branchen.  Vi väljer en image med hjälp av pool från microsoft-hosted agent för att köra vår job på VM/Container.  Därefter bestämmer vi att den ska göra en build och sedan pusha vår container till **container registry** på azure.  När vår container är färdig med sin uppgift då körs vår **Presentation Release pipeline** igång som vi kan se längre ner.
 
 ```yaml
 trigger:
 - master
-
 pool:
   vmImage: 'ubuntu-latest'
-
 steps:
 - task: Docker@2
   inputs:
@@ -173,17 +182,44 @@ steps:
     Dockerfile: Presentation/Dockerfile
 ```
 
-
-
-I vårat API körs våra unit tester, och ger felutskrift ifall versionen ej går igenom testprocessen. Annars så fortlöper processen, bygger samt publicerar en Docker Container.
-
-### Release pipelines
-
-#### Presentation Release Pipeline
-
-Vår Release pipeline för presentation körs igång varje gång vår Build pipeline<azure pipeline presentation> körs, detta händer eftersom vi har lagt till en <Artifact> som är baserat på vår senast version av Build Pipeline och satte på <continuous deployment trigger>. Därefter vår release pipeline tar vår image och deployer det till en container instance. 
-
+### Presentation Release Pipeline
+Vår Release pipeline för presentation körs igång varje gång vår *Presentation Build pipeline* körs, detta händer eftersom vi har lagt till en **Artifact** som är baserat på vår senast version av Build Pipeline och har aktiverat **continuous deployment trigger**. Därefter så tar vår release pipeline vår image och deployar det till en container instance. 
 
 # Resultat
+Resultatet av projektet blev nästan som förväntat. Vi har mestadels lyckats uppnå våra uppsatta mål av applikationen, fördjupning inom CI/CD, Molntjänster och Azure DevOps. 
 
-> Fortsätt här
+Vi satte av med att först bygga upp basen för vårat API samt att sätta upp en relationsdatabas på Azure. Vi förde dagliga standups på morgonen med hög närvaro, och samlades alltid minst en gång innan lunch och innan dagens slut för att återkoppla. Cirka en vecka in i projektet så designade vi ett interface för vår Frontend och använde oss av jQuery Ajax för att kommunicera med API:et. Allt detta gick helt smärtfritt.
+
+Vi låg bra till tidsmässigt fram emot slutet där vi började stöta på problem. **Release Pipelines** för API ville inte fungera för oss och detta stal mycket tid. Dessutom var detta i ett sent skede när vi nästan var färdiga och behövde fokusera på dokumentation och video presentation. 
+
+Vår lösning innehåller: 
+
+- De mest kostnadseffektiva Molnlösningarna vi kunde hitta på Azure Portal
+  - Azure SQL
+  - Azure Container Instance
+  - Azure Container Registry
+- Frontend byggd i statisk html, css och JavaScript (jQuery)
+- .NET Core Backend API
+
+Vi gjorde ett diagram av hur vi tänkte oss att applikationen ska fungera. Detta är mer eller mindre slutresultatet. En skillnad är att en använder inte kan återanvända sitt tidigare Konto utan behöver skapa ett nytt.
+
+<div align="center"><img width="50%" src="gfx/diagram-flowchart.png"></div> 
+
+En Frontend App byggd i HTML, JS, CSS som kommunicerar med vårat REST API för att presentera information. Slutresultatet av vår Frontend ser ni nedan:
+
+<div align="center"><img width="75%" src="gfx/presentation-demo.png"></div> 
+
+Vår lösning på API innehåller följande: 
+
+<div align="center"><img src="gfx/api-solution.png"></div> 
+
+
+
+Som tänkt från början ville vi ha en simpel tabellstruktur och inte allt för många tabeller och modeller till API:et. Vi ville ha en "minimum viable solution" och vår databas återspeglar detta:  
+
+<div align="center"><img src="gfx/datalayer.png"></div> 
+
+Våra Pipelines (Test, Build och Publish) kan enklast demonstreras med ett diagram:
+
+<div align="center"><img src="gfx/diagram-pipelines.png"></div> 
+
