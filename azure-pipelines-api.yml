@@ -1,40 +1,43 @@
-
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
 
 trigger:
 - master
 
 pool:
   vmImage: 'ubuntu-latest'
-
+  
 variables:
   buildConfiguration: 'Release'
-  tag: '$(Build.BuildId)'
+steps:
 
-# steps:
-# - task: DotNetCoreCLI@2
-#   inputs:
-#     command: 'build'
-#     projects: 'SpacePort/*.csproj'
+- task: DotNetCoreCLI@2
+  inputs:
+    command: 'build'
+    projects: 'SpacePort/*.csproj'
 
-# - task: DotNetCoreCLI@2
-#   inputs:
-#     command: 'test'
-#     projects: 'SpacePort.Tests/*.csproj'
-#     arguments: '--configuration $(buildConfiguration)'
-stages:
-- stage: Build
-  displayName: Build and push stage
-  jobs:  
-  - job: Build
-    displayName: Build
-    pool:
-      vmImage: 'ubuntu-latest'
-    steps:
-    - task: Docker@2
-      inputs:
-        containerRegistry: 'apiConnection'
-        repository: 'spaceport-backend'
-        command: 'buildAndPush'
-        Dockerfile: 'SpacePort/Dockerfile'
-        tags: |
-          $(tag)
+
+- task: DotNetCoreCLI@2
+  inputs:
+    command: 'publish'
+    publishWebProjects: true
+    zipAfterPublish: false
+    workingDirectory: 'SpacePort'
+    arguments: '--configuration $(buildConfiguration)'
+
+
+
+- task: Docker@2
+  inputs:
+    containerRegistry: 'apiConnection'
+    repository: 'spaceport-backend'
+    command: 'buildAndPush'
+    Dockerfile: 'SpacePort/Dockerfile'
+
+- task: PublishBuildArtifacts@1
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+    ArtifactName: 'backend'
+    publishLocation: 'Container'
