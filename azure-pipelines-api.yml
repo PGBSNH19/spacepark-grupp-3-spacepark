@@ -6,7 +6,6 @@ resources:
 
 variables:
   # Container registry service connection established during pipeline creation
-  imageRepository: 'apiConnection'
   tag: '$(Build.BuildId)'
 
   # Agent VM image name
@@ -25,8 +24,8 @@ stages:
       displayName: Build and push an image to container registry
       inputs:
         command: buildAndPush
-        repository: $(imageRepository)
+        repository: api
         dockerfile: SpacePort/Dockerfile
-        containerRegistry: 'spaceportContainer'
+        containerRegistry: apiConnection
         tags: |
           $(tag)
