@@ -1,5 +1,5 @@
 <h2 align="center">Projekt SpacePort</h2>
-<h3 align="center">Grupp 3</3>
+<h3 align="center">Grupp 3</h3>
 <p align="center"><a href="https://github.com/samirehsani19">Samir</a>, <a href="https://github.com/pirren">Pierre</a>, <a href="https://github.com/oskarmorell">Oskar</a>, <a href="https://github.com/fjalling">Jakob</a></p>
 
 ##### Innehållsförteckning 
