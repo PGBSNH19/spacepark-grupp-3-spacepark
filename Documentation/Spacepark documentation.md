@@ -24,8 +24,10 @@
   * [Azure DevOps](#azure-devops) 
     * [Boards](#boards)
     * [Build och Test pipelines](#build-och-test-pipelines)
+    * [Api build pipeline](#api-build-pipeline)
     * [Presentation build pipeline](#presentation-build-pipeline)
     * [Presentation release pipeline](#presentation-release-pipeline)
+    * [API release pipeline](#api-release-pipeline)
 - [Resultat](#resultat)
 
 # Lista över förkortningar och begrepp
@@ -214,8 +216,6 @@ steps:
 
 ```
 
-
-
 ### Presentation build pipeline
 Vi har en enkel pipeline för frontend som gör sitt jobb med få rader kod. Vi bestämmer att den ska köras i gång varje gång en ändring kommer till master branchen.  Vi väljer en image med hjälp av pool från microsoft-hosted agent för att köra vår job på VM/Container.  Därefter bestämmer vi att den ska göra en build och sedan pusha vår container till **container registry** på azure.  När vår container är färdig med sin uppgift då körs vår **Presentation Release pipeline** igång.
 
@@ -237,7 +237,6 @@ steps:
 Vår Release pipeline för presentation körs igång varje gång vår *Presentation Build pipeline* körs, detta händer eftersom vi har lagt till en **Artifact** som är baserat på vår senast version av Build Pipeline och har aktiverat **continuous deployment trigger**. Därefter så tar vår release pipeline vår image och deployar det till en service app på azure. 
 
 ### API release pipeline
-
 Denna pipeline hoppar igång när vår build pipeline för API är färdig med sitt jobb och pushat en container till azure container registry, detta för att i vår artifact har vi bestämt att den ska ta den senaste tag ID:n på vår container och sedan deploy det till vår app service. 
 
 # Resultat
