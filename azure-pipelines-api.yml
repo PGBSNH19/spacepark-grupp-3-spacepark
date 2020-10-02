@@ -8,6 +8,7 @@ pool:
 
 variables:
   buildConfiguration: 'Release'
+  tag: '$(Build.BuildId)'
 
 steps:
 - task: DotNetCoreCLI@2
@@ -26,3 +27,5 @@ steps:
     repository: 'spaceport-backend'
     command: 'buildAndPush'
     Dockerfile: 'SpacePort/Dockerfile'
+    tags: |
+      $(tag)
