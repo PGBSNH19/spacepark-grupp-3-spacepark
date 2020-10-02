@@ -44,7 +44,7 @@ stages:
 #         configuration: '$(buildConfiguration)'
 
 - stage: Push
-  dependsOn: Test
+  dependsOn: Build
   condition: succeeded()
   pool:
    -vmImage: 'ubuntu-latest'
