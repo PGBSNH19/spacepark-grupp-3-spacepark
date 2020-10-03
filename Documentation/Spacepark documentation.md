@@ -60,16 +60,15 @@ Continuous- Integration/Development var ett fokus för detta projekt. Dessa arbe
 
 # Beslut om priser och kostnader
 ## Kostnad för testapplikation
-
-Då denna applikationen endast ska användas i test syfte så finns det lite besparingar men inte mycket. Vi kan använda oss utav Container Instance där vi endast behöver betala för tiden vi har uppe containern. Dessutom kan vi tjäna in lite pengar med en betydligt mycket mindre databas.
+Då denna applikationen endast ska användas i test syfte så finns det lite besparingar men inte mycket. Vi kan använda oss utav Container Instance där vi endast behöver betala för tiden vi har uppe containern. Dessutom kan vi tjäna in lite pengar med en serverless databas.
 
 **Container Registry**: Basic|2 enheter i 30 dagar|5GB bandbredd **87 kr**
 
 **Container Instance**: 1 containergrupp i 7 dagar|2 GB minne|2 vCPU **73 kr**
 
-**Databas i MySQL**: General Purpose|2 vCore|Pay as you go|5GB storage **3261 kr**
+**Databas i MySQL**: General Purpose|2 vCore|Pay as you go|5GB storage **42 kr**
 
-**Totalbelopp: 3421 kr i månaden**
+**Totalbelopp: 202 kr i månaden**
 
 ## Kostnad för eventuell applikation
 
@@ -79,9 +78,9 @@ Om applikationen skulle gå att användas publikt så skulle kostnaden bli lite 
 
 **App service**: Basic|Linux|1 enhet i 30 dagar|1 core|1.75 GB RAM|10 GB minne **113 kr**
 
-**Databas i MySQL**: General Purpose|2 vCore|Pay as you go|50GB storage **3,310 kr**
+**Databas i MySQL**: General Purpose|2 vCore|Pay as you go|50GB storage **42 kr**
 
-**Totalbelopp: 3510 kr i månaden**
+**Totalbelopp: 242 kr i månaden**
 
 # Metod
 ## Arbetssätt
