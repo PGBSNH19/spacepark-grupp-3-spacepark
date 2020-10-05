@@ -10,7 +10,7 @@
   * [Molntjänster](#molntjänster)
   * [CI/CD](#ci-cd)
 - [Beslut om priser och kostnader](#beslut-om-priser-och-kostnader)
-- [Metod](#metod)
+- [Process](#process)
   * [Arbetssätt](#arbetssätt)
   * [Tester](#tester)
   	* [Typ av tester](#typ-av-tester)
@@ -82,7 +82,7 @@ Om applikationen skulle gå att användas publikt så skulle kostnaden bli lite 
 
 **Totalbelopp: 242 kr i månaden**
 
-# Metod
+# Process
 ## Arbetssätt
 Vi började dagarna med att samlas på Discord och diskutera hur vi låg till. Vi satte sedan gemensamt upp **Issues** för att arbeta med i separata GitHub-branches. Varje branch fick lov att mergas till GitHub master när minst 2 kontrollanter gav godkännande.
 
