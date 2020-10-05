@@ -115,41 +115,7 @@ Programmet använder sig av 3 komponenter i ett så kallat 3 lagers-arkitektur (
 Vi valde att bygga vårat Presentationslager som en anpassad webbsida. Denna är byggd på HTML, CSS och JavaScript (JQuery). Vi gjorde och såg detta valet som fördelaktigt för att slippa lära oss t ex Razorpages, och kunde hellre fokusera på CI och CD genom projektets gång.
 
 ### Applikationslager
-Vårat Applikationslager är ett .NET Core API som fungerar som en mellanhand och arbetare mellan presentationen och datalagret. API:et använder sig av 4 modeller: 
-```csharp
-public class Driver
-{
-    [Key] 
-    public int DriverId { get; set; }
-    public string Name { get; set; }
-}
-class Receipt 
-{
-    [Key] 
-    public int ReceiptId { get; set; }
-    public int Price { get; set; }
-    public DateTime RegistrationTime { get; set; }
-    public DateTime EndTime { get; set; }
-	public Driver Driver { get; set; }
-    public Parkingspot Parkingspot { get; set; }
-}
-class Parkinglot 
-{
-    [Key]
-    public int ParkinglotId { get; set; }
-    public string Name { get; set; }
-    public ICollection<Parkingspot> Parkingspot { get; set; }
-}
-class Parkingspot 
-{
-    [Key]
-    public int ParkingspotId { get; set; }
-    public int Size { get; set; }
-    public bool Occupied { get; set; }
-    public Parkinglot Parkinglot { get; set; }
-}
-```
-Varje Model har en tillhörande Controller och ett tillhörande Repository. Interfaces ska skrivas för samtliga repositories för att behålla låg koppling. En fördel med att bygga på detta viset är att vi inte får för avancerade relationer i databasen, och API:et blir behändigt att arbeta med.
+Vi valde att börja koda genom att först bygga på API:et. Detta kändes i efterhand som helt rätt metod. Vi kunde sedan gå till nästa steg och bygga Frontend och då börja anpassa vidareutbyggnaden av vårat API. 
 
 ### Datalager
 Vi använder en Azure SQL relationsdatabas. Vi valde sedan att bygga upp och populera denna med EntityFrameworkCore och Code first metoden. Vi var alla som mest bekanta med relationsdatabaser och detta var ett väldigt billigt alternativ.
@@ -262,16 +228,50 @@ En Frontend App byggd i HTML, JS, CSS som kommunicerar med vårat REST API för 
 
 <div align="center"><img width="75%" src="gfx/presentation-demo.png"></div> 
 
-Vår lösning på API innehåller följande: 
+Vårat Applikationslager är ett .NET Core API som fungerar som en mellanhand och arbetare mellan presentationen och datalagret. Varje Model har en tillhörande Controller och ett tillhörande Repository. Interfaces ska skrivas för samtliga repositories för att behålla låg koppling. En fördel med att bygga på detta viset är att vi inte får för avancerade relationer i databasen, och API:et blir behändigt att arbeta med.
 
-<div align="center"><img src="gfx/api-solution.png"></div> 
+API:et använder sig av 4 modeller: 
 
+```csharp
+public class Driver
+{
+    [Key] 
+    public int DriverId { get; set; }
+    public string Name { get; set; }
+}
+class Receipt 
+{
+    [Key] 
+    public int ReceiptId { get; set; }
+    public int Price { get; set; }
+    public DateTime RegistrationTime { get; set; }
+    public DateTime EndTime { get; set; }
+	public Driver Driver { get; set; }
+    public Parkingspot Parkingspot { get; set; }
+}
+class Parkinglot 
+{
+    [Key]
+    public int ParkinglotId { get; set; }
+    public string Name { get; set; }
+    public ICollection<Parkingspot> Parkingspot { get; set; }
+}
+class Parkingspot 
+{
+    [Key]
+    public int ParkingspotId { get; set; }
+    public int Size { get; set; }
+    public bool Occupied { get; set; }
+    public Parkinglot Parkinglot { get; set; }
+}
+```
 
 
 Som tänkt från början ville vi ha en simpel tabellstruktur och inte allt för många tabeller och modeller till API:et. Vi ville ha en "minimum viable solution" och vår databas återspeglar detta:  
 
 <div align="center"><img src="gfx/datalayer.png"></div> 
 
+Till resultat av projektet lärde vi oss mycket om Azure Pipelines. Vi hade våra utmaningar vilket ledde till lärdomar, däribland att inte vänta för länge med att bygga fungerande Release. Som följd av våra problemställningar har vi blivit väldigt bekanta med YAML-formatet och hur DevOps fungerar.
 Våra Pipelines (Test, Build och Publish) kan enklast demonstreras med ett diagram:
 
 <div align="center"><img src="gfx/diagram-pipelines.png"></div> 
